@@ -9,10 +9,10 @@ State for model input_reader is next time: 00:00:20:000
 State for model authentication is Authentication PinCheck: PNone; Status:Disarmed;   Request: None
 00:00:30:000
 State for model input_reader is next time: 00:00:15:000
-State for model authentication is Authentication PinCheck: PNone; Status:Disarmed;   Request: Disarm
+State for model authentication is Authentication PinCheck: PNone; Status:Disarmed;   Request: Arm
 00:00:45:000
 State for model input_reader is next time: 00:00:14:000
-State for model authentication is Authentication PinCheck: DisarmValid; Status:Disarmed;   Request: Disarm
+State for model authentication is Authentication PinCheck: ArmValid; Status:Disarmed;   Request: Arm
 00:00:55:000
 State for model input_reader is next time: 00:00:14:000
 State for model authentication is Authentication PinCheck: PNone; Status:Disarmed;   Request: None
@@ -21,10 +21,10 @@ State for model input_reader is next time: 00:00:31:000
 State for model authentication is Authentication PinCheck: PNone; Status:Armed;   Request: None
 00:01:30:000
 State for model input_reader is next time: 00:00:20:000
-State for model authentication is Authentication PinCheck: PNone; Status:Armed;   Request: Arm
+State for model authentication is Authentication PinCheck: PNone; Status:Armed;   Request: Disarm
 00:01:50:000
 State for model input_reader is next time: inf
-State for model authentication is Authentication PinCheck: ArmValid; Status:Armed;   Request: Arm
+State for model authentication is Authentication PinCheck: DisarmValid; Status:Armed;   Request: Disarm
 00:02:00:000
 State for model input_reader is next time: inf
 State for model authentication is Authentication PinCheck: PNone; Status:Armed;   Request: None
