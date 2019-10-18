@@ -25,14 +25,14 @@ main_authentication_test.o: test/main_authentication_test.cpp
 main_display_test.o: test/main_display_test.cpp
 	$(CC) -g -c $(CFLAGS) $(INCLUDECADMIUM) $(INCLUDEDESTIMES) test/main_display_test.cpp -o build/main_display_test.o
 
-tests: main_alarmadmin_test.o main_display_test.o message.o
+tests: main_alarmadmin_test.o main_authentication_test.o main_display_test.o message.o
 		$(CC) -g -o bin/ALARMADMIN_TEST build/main_alarmadmin_test.o build/message.o
-		#$(CC) -g -o bin/AUTHENTICATION_TEST build/main_authentication_test.o build/message.o
+		$(CC) -g -o bin/AUTHENTICATION_TEST build/main_authentication_test.o build/message.o
 		$(CC) -g -o bin/DISPLAY_TEST build/main_display_test.o build/message.o
 
 #TARGET TO COMPILE ONLY ABP SIMULATOR
 simulator: main_top.o message.o
-	$(CC) -g -o bin/ABP build/main_top.o build/message.o 
+	$(CC) -g -o bin/SECUREAREAACCESS build/main_top.o build/message.o
 	
 #TARGET TO COMPILE EVERYTHING (ABP SIMULATOR + TESTS TOGETHER)
 all: simulator tests
