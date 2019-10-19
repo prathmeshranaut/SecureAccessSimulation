@@ -1,0 +1,12 @@
+00:00:00:000
+State for model input_reader is next time: 00:00:00:000
+State for model alarmAdmin is AlarmAdmin Status:Disarmed;   Request: None
+State for model authentication is Authentication PinCheck: PNone; Status:Disarmed;   Request: None
+State for model display is Display Status:Disarmed;  Display: Disarmed
+00:00:00:000
+State for model input_reader is next time: 00:00:30:000
+State for model alarmAdmin is AlarmAdmin Status:Disarmed;   Request: None
+State for model authentication is Authentication PinCheck: PNone; Status:Disarmed;   Request: None
+State for model display is Display Status:Disarmed;  Display: Disarmed
+00:00:10:000
+State for model input_reader is next time: 00:00:30:000

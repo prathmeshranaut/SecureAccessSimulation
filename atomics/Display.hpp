@@ -24,11 +24,6 @@ struct Display_defs {
     };
 };
 
-
-enum Status {
-    Disarmed, Armed
-};
-
 enum DisplayState {
     DisarmedMsg, ArmedMsg, PINMsg, InvalidAction, InvalidPin, DoorUnlocked
 };

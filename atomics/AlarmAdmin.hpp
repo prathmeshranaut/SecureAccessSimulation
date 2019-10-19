@@ -22,15 +22,8 @@ struct AlarmAdmin_defs {
     };
     struct in : public in_port<Message_t> {
     };
-};
-
-
-enum Status {
-    Disarmed, Armed
-};
-
-enum Request {
-    Arm, Disarm, Pin, None
+    struct authIn : public in_port<Message_t> {
+    };
 };
 
 template<typename TIME>
@@ -42,7 +35,7 @@ public:
     AlarmAdmin() noexcept {
         preparationTime = TIME("00:00:10");
         state.request = None;
-        state.status = Disarmed;
+        state.status = Status::Disarmed;
         state.working = false;
     }
 
@@ -55,7 +48,7 @@ public:
     state_type state;
 
     // ports definition
-    using input_ports = std::tuple<typename AlarmAdmin_defs::in>;
+    using input_ports = std::tuple<typename AlarmAdmin_defs::in, typename AlarmAdmin_defs::authIn>;
     using output_ports = std::tuple<typename AlarmAdmin_defs::out>;
 
     void internal_transition() {
@@ -72,12 +65,15 @@ public:
             assert(false && "One message per time unit");
         vector <Message_t> message_port_in;
         message_port_in = get_messages<typename AlarmAdmin_defs::in>(mbs);
+
+        assert(false && message_port_in.size());
+
         int port = message_port_in[0].port;
         int message = message_port_in[0].message;
 
         switch (port) {
             case Arm:
-                if (message == 1 && state.status == Disarmed) {
+                if (message == 1 && state.status == Status::Disarmed) {
                     state.request = Arm;
                     state.working = true;
                 } else {
@@ -85,7 +81,7 @@ public:
                 }
                 break;
             case Disarm:
-                if (message == 1 && state.status == Armed) {
+                if (message == 1 && state.status == Status::Armed) {
                     state.request = Disarm;
                     state.working = true;
                 } else {
@@ -93,14 +89,14 @@ public:
                 }
                 break;
             case Pin:
-                if (message == 1 && state.status == Disarmed) {
+                if (message == 1 && state.status == Status::Disarmed) {
                     state.request = None;
-                    state.status = Armed;
+                    state.status = Status::Armed;
                     state.working = true;
                 }
-                if (message == 0 && state.status == Armed) {
+                if (message == 0 && state.status == Status::Armed) {
                     state.request = None;
-                    state.status = Disarmed;
+                    state.status = Status::Disarmed;
                     state.working = true;
                 }
                 if (message == 2) {
@@ -138,7 +134,7 @@ public:
 
     friend std::ostringstream &operator<<(std::ostringstream &os, const typename AlarmAdmin<TIME>::state_type &i) {
         string request = "None";
-        string status = "Armed";
+        string status = "Status::Armed";
 
         switch (i.request) {
             case Arm:
@@ -156,10 +152,10 @@ public:
         }
 
         switch (i.status) {
-            case Armed:
-                status = "Armed";
+            case Status::Armed:
+                status = "Status::Armed";
                 break;
-            case Disarmed:
+            case Status::Disarmed:
                 status = "Disarmed";
                 break;
         }

@@ -27,15 +27,6 @@ struct Authentication_defs {
     };
 };
 
-
-enum Status {
-    Disarmed, Armed
-};
-
-enum Request {
-    Arm, Disarm, None
-};
-
 enum PinCheck {
     DisarmValid, ArmValid, Invalid, DoorValid, DoorInvalid, PNone
 };
@@ -187,6 +178,9 @@ public:
                 break;
             case Disarm:
                 request = "Disarm";
+                break;
+            case Pin:
+                request = "Pin"; //Never be here
                 break;
             case None:
                 request = "None";

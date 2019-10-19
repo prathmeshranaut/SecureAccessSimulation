@@ -23,5 +23,11 @@ istream& operator>> (istream& is, Message_t& msg);
 
 ostream& operator<<(ostream& os, const Message_t& msg);
 
+enum Status {
+    Disarmed, Armed
+};
+enum Request {
+    Arm, Disarm, Pin, None
+};
 
 #endif // BOOST_SIMULATION_MESSAGE_HPP
