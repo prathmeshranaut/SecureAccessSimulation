@@ -137,7 +137,7 @@ public:
     typename make_message_bags<output_ports>::type output() const {
         typename make_message_bags<output_ports>::type bags;
         Message_t out_aux;
-        switch (i.pinCheck) {
+        switch (state.pinCheck) {
             case DisarmValid:
                 out_aux = Message_t(0, 1);
                 break;

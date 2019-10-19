@@ -37,14 +37,14 @@ public:
         state.request = None;
         state.status = Status::Disarmed;
         state.working = false;
-        state.next_internal = preparationTime;
+        state.nextInternal = preparationTime;
     }
 
     struct state_type {
         Status status;
         Request request;
         bool working;
-        TIME next_internal;
+        TIME nextInternal;
     };
 
     state_type state;
@@ -55,7 +55,7 @@ public:
 
     void internal_transition() {
         if (state.request == Arm || state.request == Disarm) {
-            state.next_internal = preparationTime;
+            state.nextInternal = preparationTime;
         } else {
             state.request = None;
             state.nextInternal = std::numeric_limits<TIME>::infinity();
@@ -120,7 +120,7 @@ public:
         Message_t out_aux;
         if (state.request == Arm) {
             out_aux = Message_t(0, 1);
-        } else if (state.request = Disarm) {
+        } else if (state.request == Disarm) {
             out_aux = Message_t(1, 1);
         } else if (state.request == None) {
             out_aux = Message_t(2, 1);
@@ -130,7 +130,7 @@ public:
     }
 
     TIME time_advance() const {
-        return state.next_internal;
+        return state.nextInternal;
     }
 
     friend std::ostringstream &operator<<(std::ostringstream &os, const typename AlarmAdmin<TIME>::state_type &i) {
