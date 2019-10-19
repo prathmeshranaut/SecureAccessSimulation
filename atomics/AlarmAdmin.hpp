@@ -37,12 +37,14 @@ public:
         state.request = None;
         state.status = Status::Disarmed;
         state.working = false;
+        state.next_internal = preparationTime;
     }
 
     struct state_type {
         Status status;
         Request request;
         bool working;
+        TIME next_internal;
     };
 
     state_type state;
@@ -53,10 +55,10 @@ public:
 
     void internal_transition() {
         if (state.request == Arm || state.request == Disarm) {
-            state.working = true;
+            state.next_internal = preparationTime;
         } else {
-            state.working = false;
             state.request = None;
+            state.nextInternal = std::numeric_limits<TIME>::infinity();
         }
     }
 
@@ -66,7 +68,7 @@ public:
         vector <Message_t> message_port_in;
         message_port_in = get_messages<typename AlarmAdmin_defs::in>(mbs);
 
-        assert(false && message_port_in.size());
+//        assert(false && message_port_in.size());
 
         int port = message_port_in[0].port;
         int message = message_port_in[0].message;
@@ -116,20 +118,19 @@ public:
     typename make_message_bags<output_ports>::type output() const {
         typename make_message_bags<output_ports>::type bags;
         Message_t out_aux;
-        out_aux = Message_t(0, 1);
+        if (state.request == Arm) {
+            out_aux = Message_t(0, 1);
+        } else if (state.request = Disarm) {
+            out_aux = Message_t(1, 1);
+        } else if (state.request == None) {
+            out_aux = Message_t(2, 1);
+        }
         get_messages<typename AlarmAdmin_defs::out>(bags).push_back(out_aux);
         return bags;
     }
 
     TIME time_advance() const {
-        TIME next_interval;
-        if (state.working) {
-            next_interval = preparationTime;
-        } else {
-            next_interval = std::numeric_limits<TIME>::infinity();
-        }
-
-        return next_interval;
+        return state.next_internal;
     }
 
     friend std::ostringstream &operator<<(std::ostringstream &os, const typename AlarmAdmin<TIME>::state_type &i) {

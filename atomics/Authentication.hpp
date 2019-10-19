@@ -137,7 +137,28 @@ public:
     typename make_message_bags<output_ports>::type output() const {
         typename make_message_bags<output_ports>::type bags;
         Message_t out_aux;
-        out_aux = Message_t(0, 1);
+        switch (i.pinCheck) {
+            case DisarmValid:
+                out_aux = Message_t(0, 1);
+                break;
+            case ArmValid:
+                out_aux = Message_t(0, 2);
+                break;
+            case Invalid:
+                out_aux = Message_t(0, 3);
+                break;
+            case DoorValid:
+                out_aux = Message_t(0, 4);
+                break;
+            case DoorInvalid:
+                out_aux = Message_t(0, 5);
+                break;
+            case PNone:
+                out_aux = Message_t(0, 6);
+                break;
+        }
+
+
         get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
         return bags;
     }
