@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
     };
     dynamic::modeling::EOCs eocs_SystemAdmin = {
             dynamic::translate::make_EOC<AlarmAdmin_defs::out, outp_1>("alarmAdmin"),
-            dynamic::translate::make_EOC<Authentication_defs::out, outp_2>("authentication")
+            dynamic::translate::make_EOC<Authentication_defs::displayOut, outp_2>("authentication")
     };
     dynamic::modeling::ICs ics_SystemAdmin = {
             dynamic::translate::make_IC<AlarmAdmin_defs::out, Authentication_defs::in>("alarmAdmin", "authentication"),

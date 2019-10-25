@@ -54,9 +54,11 @@ public:
     using output_ports = std::tuple<typename AlarmAdmin_defs::out>;
 
     void internal_transition() {
-        state.request = None;
-        state.working = false;
-        state.nextInternal = std::numeric_limits<TIME>::infinity();
+        if (!state.working) {
+            state.request = None;
+            state.working = false;
+            state.nextInternal = std::numeric_limits<TIME>::infinity();
+        }
     }
 
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
@@ -65,7 +67,7 @@ public:
             assert(false && "One message per time unit");
 
         for (const auto &x: get_messages<typename AlarmAdmin_defs::in>(mbs)) {
-            if (state.working != true) {
+            if (!state.working) {
                 // Retrieve the alarmadmin
                 switch (x.message) {
                     case 1:
@@ -91,7 +93,8 @@ public:
 
         for (const auto &x: get_messages<typename AlarmAdmin_defs::authIn>(mbs)) {
             //This is for processing response from PIN
-            if (state.working == true) {
+            //cout<<"State: "<<state.working<<" - "<<x.message<<endl;
+            if (state.working) {
                 if (state.request == Arm && x.message == 1) {
                     //Valid pin, now arm
                     state.status = Armed;
