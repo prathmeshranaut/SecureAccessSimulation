@@ -21,9 +21,9 @@ using namespace std;
 struct Authentication_defs {
     struct out : public out_port<Message_t> {
     };
-    struct in : public in_port<Message_t> {
+    struct displayOut : public out_port<Message_t> {
     };
-    struct alarmStatus2 : public in_port<Message_t> {
+    struct in : public in_port<Message_t> {
     };
 };
 
@@ -53,7 +53,7 @@ public:
 
     // ports definition
     using input_ports = std::tuple<typename Authentication_defs::in>;
-    using output_ports = std::tuple<typename Authentication_defs::out>;
+    using output_ports = std::tuple<typename Authentication_defs::out, typename Authentication_defs::displayOut>;
 
     void internal_transition() {
         state.pinCheck = PNone;
@@ -96,19 +96,35 @@ public:
     typename make_message_bags<output_ports>::type output() const {
         typename make_message_bags<output_ports>::type bags;
         Message_t out_aux;
+        Message_t display_aux;
 
         switch (state.pinCheck) {
             case DisarmValid:
                 out_aux = Message_t(0, 0);
                 get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
+
+                //For the display
+                display_aux = Message_t(0,0);
+                get_messages<typename Authentication_defs::displayOut>(bags).push_back(display_aux);
+
                 break;
             case ArmValid:
                 out_aux = Message_t(0, 1);
                 get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
+
+                //For the display
+                display_aux = Message_t(0,1);
+                get_messages<typename Authentication_defs::displayOut>(bags).push_back(display_aux);
+
                 break;
             case Invalid:
                 out_aux = Message_t(0, 2);
                 get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
+
+                //For the display
+                display_aux = Message_t(0,4);
+                get_messages<typename Authentication_defs::displayOut>(bags).push_back(display_aux);
+
                 break;
             case DoorInvalid:
             case DoorValid:
