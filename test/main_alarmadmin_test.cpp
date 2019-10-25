@@ -48,6 +48,8 @@ int main(){
     /****** Input Reader atomic model instantiation *******************/
     const char * i_input_data_control = "../input_data/alarmadmin_input_test.txt";
     shared_ptr<dynamic::modeling::model> input_reader = dynamic::translate::make_dynamic_atomic_model<InputReader_Message_t, TIME, const char* >("input_reader" , std::move(i_input_data_control));
+    const char * i_input_data_control2 = "../input_data/alarmadmin_input_test2.txt";
+    shared_ptr<dynamic::modeling::model> input_reader2 = dynamic::translate::make_dynamic_atomic_model<InputReader_Message_t, TIME, const char* >("input_reader2" , std::move(i_input_data_control2));
 
     /****** Alarm Admin atomic model instantiation *******************/
     shared_ptr<dynamic::modeling::model> alarmAdmin = dynamic::translate::make_dynamic_atomic_model<AlarmAdmin, TIME>("alarmAdmin");
@@ -55,13 +57,14 @@ int main(){
     /*******TOP MODEL********/
     dynamic::modeling::Ports iports_TOP = {};
     dynamic::modeling::Ports oports_TOP = {typeid(outp)};
-    dynamic::modeling::Models submodels_TOP = {input_reader, alarmAdmin};
+    dynamic::modeling::Models submodels_TOP = {input_reader, input_reader2, alarmAdmin};
     dynamic::modeling::EICs eics_TOP = {};
     dynamic::modeling::EOCs eocs_TOP = {
             dynamic::translate::make_EOC<AlarmAdmin_defs::out,outp>("alarmAdmin")
     };
     dynamic::modeling::ICs ics_TOP = {
-            dynamic::translate::make_IC<iestream_input_defs<Message_t>::out,AlarmAdmin_defs::in>("input_reader","alarmAdmin")
+            dynamic::translate::make_IC<iestream_input_defs<Message_t>::out,AlarmAdmin_defs::in>("input_reader","alarmAdmin"),
+            dynamic::translate::make_IC<iestream_input_defs<Message_t>::out,AlarmAdmin_defs::authIn>("input_reader2","alarmAdmin")
     };
     shared_ptr<dynamic::modeling::coupled<TIME>> TOP;
     TOP = make_shared<dynamic::modeling::coupled<TIME>>(

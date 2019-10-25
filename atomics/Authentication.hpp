@@ -38,16 +38,13 @@ public:
     TIME preparationTime;
 
     Authentication() noexcept {
-        preparationTime = TIME("00:00:10");
-        state.request = Request::None;
-        state.status = Disarmed;
-        state.nextInternal = preparationTime;
+        preparationTime = TIME("00:00:02");
+        state.nextInternal = std::numeric_limits<TIME>::infinity();
         state.pinCheck = PNone;
     }
 
     struct state_type {
         Status status;
-        Request request;
         PinCheck pinCheck;
         TIME nextInternal;
     };
@@ -60,71 +57,33 @@ public:
 
     void internal_transition() {
         state.pinCheck = PNone;
-        state.request = Request::None;
         state.nextInternal = std::numeric_limits<TIME>::infinity();
     }
 
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
         if (get_messages<typename Authentication_defs::in>(mbs).size() > 1)
             assert(false && "One message per time unit");
-        vector <Message_t> message_port_in;
-        message_port_in = get_messages<typename Authentication_defs::in>(mbs);
-        int port = message_port_in[0].port;
-        int message = message_port_in[0].message;
 
-        switch (port) {
-            case 0:
-                if (state.request == Request::None) {
-                    if (message == 0) {
-                        state.status = Disarmed;
-                    } else if (message == 1) {
-                        state.status = Armed;
-                    } else {
-                        assert(false && "Invalid message passed to Pin Model");
-                    }
-                    state.request = Request::None;
-                    state.pinCheck = PNone;
-                    state.nextInternal = std::numeric_limits<TIME>::infinity();
+        for (const auto &x : get_messages<typename Authentication_defs::in>(mbs)) {
+            double randNumber = (double) rand() / (double) RAND_MAX;
+
+            if (x.message == 0) {
+                // Disarm Request
+                if (randNumber <= 0.5) {
+                    state.pinCheck = DisarmValid;
                 } else {
-                    assert(false && "Invalid message/port reset with request None");
-                    state.nextInternal -= e;
+                    state.pinCheck = Invalid;
                 }
-                break;
-            case 1:
-                if (message == 1) {
-                    double randNumber = (double) rand() / (double) RAND_MAX;
-                    if (state.request == Arm) {
-                        if (randNumber <= 0.9) {
-                            state.pinCheck = ArmValid;
-                        } else {
-                            state.pinCheck = Invalid;
-                        }
-                    } else if (state.request == Request::Disarm) {
-                        if (randNumber <= 0.9) {
-                            state.pinCheck = DisarmValid;
-                        } else {
-                            state.pinCheck = Invalid;
-                        }
-                    } else {
-                        if (randNumber <= 0.9) {
-                            state.pinCheck = DoorValid;
-                        } else {
-                            state.pinCheck = DoorInvalid;
-                        }
-                    }
-                    state.nextInternal = preparationTime;
+                state.nextInternal = preparationTime;
+            } else if (x.message == 1) {
+                // Arm Request
+                if (randNumber <= 0.5) {
+                    state.pinCheck = ArmValid;
+                } else {
+                    state.pinCheck = Invalid;
                 }
-                break;
-            case 2:
-                if (message == 0) {
-                    state.request = Arm;
-                    state.nextInternal = std::numeric_limits<TIME>::infinity();
-                }
-                if (message == 1) {
-                    state.request = Disarm;
-                    state.nextInternal = std::numeric_limits<TIME>::infinity();
-                }
-                state.nextInternal -= e;
+                state.nextInternal = preparationTime;
+            }
         }
     }
 
@@ -137,29 +96,27 @@ public:
     typename make_message_bags<output_ports>::type output() const {
         typename make_message_bags<output_ports>::type bags;
         Message_t out_aux;
+
         switch (state.pinCheck) {
             case DisarmValid:
-                out_aux = Message_t(0, 1);
+                out_aux = Message_t(0, 0);
+                get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
                 break;
             case ArmValid:
-                out_aux = Message_t(0, 2);
+                out_aux = Message_t(0, 1);
+                get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
                 break;
             case Invalid:
-                out_aux = Message_t(0, 3);
-                break;
-            case DoorValid:
-                out_aux = Message_t(0, 4);
+                out_aux = Message_t(0, 2);
+                get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
                 break;
             case DoorInvalid:
-                out_aux = Message_t(0, 5);
-                break;
+            case DoorValid:
             case PNone:
-                out_aux = Message_t(0, 6);
+            default:
                 break;
         }
 
-
-        get_messages<typename Authentication_defs::out>(bags).push_back(out_aux);
         return bags;
     }
 
@@ -193,31 +150,7 @@ public:
                 break;
         }
 
-        switch (i.request) {
-            case Arm:
-                request = "Arm";
-                break;
-            case Disarm:
-                request = "Disarm";
-                break;
-            case Pin:
-                request = "Pin"; //Never be here
-                break;
-            case None:
-                request = "None";
-                break;
-        }
-
-        switch (i.status) {
-            case Armed:
-                status = "Armed";
-                break;
-            case Disarmed:
-                status = "Disarmed";
-                break;
-        }
-
-        os << "Authentication PinCheck: " << pinCheck << "; Status:" << status << ";   Request: " << request;
+        os << "Authentication PinCheck: " << pinCheck;
         return os;
     }
 };

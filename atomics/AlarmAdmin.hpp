@@ -37,7 +37,7 @@ public:
         state.request = None;
         state.status = Status::Disarmed;
         state.working = false;
-        state.nextInternal = preparationTime;
+        state.nextInternal = std::numeric_limits<TIME>::infinity();
     }
 
     struct state_type {
@@ -54,59 +54,65 @@ public:
     using output_ports = std::tuple<typename AlarmAdmin_defs::out>;
 
     void internal_transition() {
-        if (state.request == Arm || state.request == Disarm) {
-            state.nextInternal = preparationTime;
-        } else {
-            state.request = None;
-            state.nextInternal = std::numeric_limits<TIME>::infinity();
-        }
+        state.request = None;
+        state.working = false;
+        state.nextInternal = std::numeric_limits<TIME>::infinity();
     }
 
     void external_transition(TIME e, typename make_message_bags<input_ports>::type mbs) {
-        if (get_messages<typename AlarmAdmin_defs::in>(mbs).size() > 1)
+        if (get_messages<typename AlarmAdmin_defs::in>(mbs).size() +
+            get_messages<typename AlarmAdmin_defs::authIn>(mbs).size() > 1)
             assert(false && "One message per time unit");
-        vector <Message_t> message_port_in;
-        message_port_in = get_messages<typename AlarmAdmin_defs::in>(mbs);
 
-//        assert(false && message_port_in.size());
+        for (const auto &x: get_messages<typename AlarmAdmin_defs::in>(mbs)) {
+            if (state.working != true) {
+                // Retrieve the alarmadmin
+                switch (x.message) {
+                    case 1:
+                        //Arm request
+                        state.request = Arm;
+                        state.working = true;
+                        state.nextInternal = preparationTime;
+                        break;
+                    case 0:
+                        //Disarm request
+                        state.request = Disarm;
+                        state.working = true;
+                        state.nextInternal = preparationTime;
+                        break;
+                    default:
+                        assert(false && "Please enter valid request for alarm");
+                }
+            } else {
+                //Ignore the command as we are already working.
+                state.nextInternal -= e;
+            }
+        }
 
-        int port = message_port_in[0].port;
-        int message = message_port_in[0].message;
-
-        switch (port) {
-            case Arm:
-                if (message == 1 && state.status == Status::Disarmed) {
-                    state.request = Arm;
-                    state.working = true;
-                } else {
-                    assert("Invalid State sent to Arm - AlarmAdmin");
-                }
-                break;
-            case Disarm:
-                if (message == 1 && state.status == Status::Armed) {
-                    state.request = Disarm;
-                    state.working = true;
-                } else {
-                    assert("Invalid State sent to Disarm - AlarmAdmin");
-                }
-                break;
-            case Pin:
-                if (message == 1 && state.status == Status::Disarmed) {
+        for (const auto &x: get_messages<typename AlarmAdmin_defs::authIn>(mbs)) {
+            //This is for processing response from PIN
+            if (state.working == true) {
+                if (state.request == Arm && x.message == 1) {
+                    //Valid pin, now arm
+                    state.status = Armed;
                     state.request = None;
-                    state.status = Status::Armed;
-                    state.working = true;
-                }
-                if (message == 0 && state.status == Status::Armed) {
+                    state.working = false;
+                    state.nextInternal = std::numeric_limits<TIME>::infinity();
+                } else if (state.request == Disarm && x.message == 0) {
+                    //Valid pin, now disarm
+                    state.status = Disarmed;
                     state.request = None;
-                    state.status = Status::Disarmed;
-                    state.working = true;
+                    state.working = false;
+                    state.nextInternal = std::numeric_limits<TIME>::infinity();
+                } else if (x.message == 2) {
+                    // Invalid pin
+                    state.working = false;
+                    state.nextInternal -= e;
                 }
-                if (message == 2) {
-                    //Invalid pin
-                    state.request = None;
-                    state.working = true;
-                }
-                break;
+            } else {
+                //Ignore the PIN message
+                state.nextInternal -= e;
+            }
         }
     }
 
@@ -115,16 +121,18 @@ public:
         external_transition(TIME(), std::move(mbs));
     }
 
+    //Lambda function
     typename make_message_bags<output_ports>::type output() const {
         typename make_message_bags<output_ports>::type bags;
         Message_t out_aux;
         if (state.request == Arm) {
             out_aux = Message_t(0, 1);
         } else if (state.request == Disarm) {
-            out_aux = Message_t(1, 1);
-        } else if (state.request == None) {
-            out_aux = Message_t(2, 1);
+            out_aux = Message_t(0, 0);
         }
+//        else if (state.request == None) {
+//            out_aux = Message_t(0, 2);
+//        }
         get_messages<typename AlarmAdmin_defs::out>(bags).push_back(out_aux);
         return bags;
     }
